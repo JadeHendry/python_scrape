@@ -3,7 +3,7 @@ Module built to scrape python modules and turn them into Jupyter Notebooks.
 
 ## How to use this module
 In a bash terminal run:<br>
-<code>git clone scrape/scrape_python_modules.py
+<code>git clone https://github.com/JadeHendry/python_scrape.git
 cd python_scrape
 chmod +x install_and_scrape.sh scrape_python_modules.py
 ./install_and_scrape.sh
