@@ -16,4 +16,4 @@ chmod +x install_and_scrape.sh scrape_python_modules.py
 
 ## NOTE:
 * **Rerunning this program will overwrite your lab notebooks** which may have notes in it. This should only be ran once at the beginning of the Python Course.<br>
-* This program is not perfect. The markdown that are inside of code blocks do not defferentiate what should have been in an interpretter. **These blocks should not be ran** and are used as examples of what a Python REPL session would look like.
+* This program is not perfect. The markdown that are inside of code blocks do not differentiate what should have been in an interpretter. **These blocks should not be ran** and are used as examples of what a Python REPL session would look like.
