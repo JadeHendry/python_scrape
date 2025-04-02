@@ -8,6 +8,7 @@ cd python_scrape
 chmod +x install_and_scrape.sh scrape_python_modules.py
 ./install_and_scrape.sh
 </code><br>
+If jupyter lab does not open, run `python3 -m jupyterlab`<br>
 * At this point a Jupyter Labs window should pop up. You can go into the modules individually. To run a codeblock, use CTRL+Enter.<br>
 * Each Notebook will run in it's own space. Make sure to shut down the kernels once you are complete and ready to move on. <br>
 * Now you will have your own space to follow along the class and run the code blocks! PLEASE add your own blocks and play with the code as much as you want.<br>

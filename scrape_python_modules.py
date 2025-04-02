@@ -251,5 +251,12 @@ if __name__ == "__main__":
             except:
                 f = open(python_module + "/" + page + ".ipynb", "w")
             
+            json_str = json.dumps(get_page_json(htmlstr.split("\n"), check_on_learning))
             
-            f.write(json.dumps(get_page_json(htmlstr.split("\n"), check_on_learning)))
+            # There are a few chars that the markdownify can't handle
+            # Need to replace these: 
+            #   &gt; --> >
+            #   &lt; --> <
+            json_str = json_str.replace("&gt;", ">")
+            json_str = json_str.replace("&lt;", "<")
+            f.write(json_str)
