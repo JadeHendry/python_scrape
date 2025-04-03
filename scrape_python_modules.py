@@ -8,6 +8,7 @@ import json
 import copy
 from markdownify import markdownify as md
 from lxml import etree
+import argparse
 
 NEW_NB_METADATA = {
     'nbformat': 4,
@@ -54,6 +55,12 @@ urlList = [
     "https://cted.cybbh.io/tech-college/cttsb/PROG/prog/Python/17_Python_Regexes/00_intro.html"  
 ]
 
+powershellUrlList = [
+    "https://cted.cybbh.io/tech-college/cttsb/PROG/prog/WOBC_PS/fg_170A_powershell_001.html",
+    "https://cted.cybbh.io/tech-college/cttsb/PROG/prog/WOBC_PS/fg_170A_powershell_002.html",
+    "https://cted.cybbh.io/tech-college/cttsb/PROG/prog/WOBC_PS/fg_170A_powershell_003.html",
+    "https://cted.cybbh.io/tech-college/cttsb/PROG/prog/WOBC_PS/fg_170A_powershell_004.html"
+]
 
 def get_sublinks(soup):
     list_of_subpages = []
@@ -198,31 +205,92 @@ def get_page_json(html_lines, mkdwn_only=False):
 
 if __name__ == "__main__":
 
-    dict_of_links = {}
-    for url in urlList:
-        dict_of_links["/".join(url.split("/")[:-1])] = []
-        response = requests.get(url)
-        soup = BeautifulSoup(response.content, "html.parser")
-        sublinks = get_sublinks(soup)
-        for link in sublinks:
-            dict_of_links["/".join(url.split("/")[:-1])].append(link)
+    parser = argparse.ArgumentParser(
+                    prog='Python Scrape Modules',
+                    description='Scrapes the Python and Powershell modules and creates Jupyter notebooks for each!')
+    parser.add_argument('-P', "--Powershell", action="store_true")
+    args = parser.parse_args()
+    print(args.Powershell)
 
+    if not args.Powershell:
+        dict_of_links = {}
+        for url in urlList:
+            dict_of_links["/".join(url.split("/")[:-1])] = []
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, "html.parser")
+            sublinks = get_sublinks(soup)
+            for link in sublinks:
+                dict_of_links["/".join(url.split("/")[:-1])].append(link)
 
-    for url in dict_of_links:
-        python_module = url.split("/")[-1]
-        print(python_module)
+        for url in dict_of_links:
+            print(url)
+            python_module = url.split("/")[-1]
+            print(python_module)
+            try:
+                os.mkdir(python_module)
+            except:
+                pass
+            for page in dict_of_links[url]:
+                print(url + "/" + page)
+                response = requests.get(url + "/" + page)
+                
+                #If the page is check on learning, just add everything as markdown
+                check_on_learning = False
+                if "check_on_learning" in page.lower():
+                    check_on_learning = True
+
+                soup = BeautifulSoup(response.content, "html.parser")
+                nbfile = url.split("/")[-1]
+                article = soup.find_all("article")
+                htmlstr = str(article[0])
+                lines = htmlstr.split("\n")
+                
+                #get rid of first couple lines that look bad
+                htmlstr = ""
+                for i in range(len(lines)):
+                    if i not in range(1,7):
+                        htmlstr += lines[i] + "\n"
+
+                # Will save off the file html elements. This is useful for comparing to the data in case 
+                # there are unexpected html elements
+
+                # try:
+                #     f = open(python_module + "/" + page, "x")
+                # except:
+                #     f = open(python_module + "/" + page, "w")
+                # f.write(str(htmlstr))
+                # f.close()
+
+                try:
+                    f = open(python_module + "/" + page + ".ipynb", "x")
+                except:
+                    f = open(python_module + "/" + page + ".ipynb", "w")
+                
+                json_str = json.dumps(get_page_json(htmlstr.split("\n"), check_on_learning))
+                
+                # There are a few chars that the markdownify can't handle
+                # Need to replace these: 
+                #   &gt; --> >
+                #   &lt; --> <
+                json_str = json_str.replace("&gt;", ">")
+                json_str = json_str.replace("&lt;", "<")
+                f.write(json_str)
+    else:
+
+        NEW_NB_METADATA["metadata"]["kernelspec"]["display_name"] = ".NET (PowerShell)"
+        NEW_NB_METADATA["metadata"]["kernelspec"]["language"] = "PowerShell"
+        NEW_NB_METADATA["metadata"]["kernelspec"]["name"] = ".net-powershell"
+
         try:
-            os.mkdir(python_module)
+            os.mkdir("Powershell")
         except:
             pass
-        for page in dict_of_links[url]:
-            print(url + "/" + page)
-            response = requests.get(url + "/" + page)
-            
-            #If the page is check on learning, just add everything as markdown
-            check_on_learning = False
-            if "check_on_learning" in page.lower():
-                check_on_learning = True
+        for i in range(len(powershellUrlList)):
+            filepath = f"Powershell\\Day{i+1}"
+                        
+            url = powershellUrlList[i]
+            print(f"Powershell\\Day{i+1}")
+            response = requests.get(url)
 
             soup = BeautifulSoup(response.content, "html.parser")
             nbfile = url.split("/")[-1]
@@ -236,22 +304,12 @@ if __name__ == "__main__":
                 if i not in range(1,7):
                     htmlstr += lines[i] + "\n"
 
-            # Will save off the file html elements. This is useful for comparing to the data in case 
-            # there are unexpected html elements
-
-            # try:
-            #     f = open(python_module + "/" + page, "x")
-            # except:
-            #     f = open(python_module + "/" + page, "w")
-            # f.write(str(htmlstr))
-            # f.close()
-
             try:
-                f = open(python_module + "/" + page + ".ipynb", "x")
+                f = open(filepath + ".ipynb", "x")
             except:
-                f = open(python_module + "/" + page + ".ipynb", "w")
+                f = open(filepath + ".ipynb", "w")
             
-            json_str = json.dumps(get_page_json(htmlstr.split("\n"), check_on_learning))
+            json_str = json.dumps(get_page_json(htmlstr.split("\n")))
             
             # There are a few chars that the markdownify can't handle
             # Need to replace these: 

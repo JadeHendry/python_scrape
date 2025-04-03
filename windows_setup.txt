@@ -1,0 +1,16 @@
+prereqs:
+- GitBash:      https://git-scm.com/downloads/win
+- DotNetSDK:    https://dotnet.microsoft.com/en-us/download/dotnet/9.0
+- Python:       https://www.python.org/downloads/
+    -During setup, make sure to check "Add python.exe to PATH"
+    -Install with admin
+    -These are in the first window after running the installer!
+
+Download and install all of the above for Win64
+
+In cmd, run the following commands:
+    dotnet tool install -g Microsoft.dotnet-interactive
+    pip install jupyterlab lxml beautifulsoup4 markdownify
+    dotnet interactive jupyter install
+
+You can now run 'python -m jupyterlab' to open jupyterlab!
