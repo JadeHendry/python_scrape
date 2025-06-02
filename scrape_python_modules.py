@@ -9,6 +9,7 @@ import copy
 from markdownify import markdownify as md
 from lxml import etree
 import argparse
+import html2text
 
 NEW_NB_METADATA = {
     'nbformat': 4,
@@ -62,12 +63,23 @@ powershellUrlList = [
     "https://cted.cybbh.io/tech-college/cttsb/PROG/prog/WOBC_PS/fg_170A_powershell_004.html"
 ]
 
-def get_sublinks(soup):
+osUrl= [
+    "https://os.cybbh.io/public/os/latest/index.html"
+]
+
+def get_sublinks(soup, fg=False):
     list_of_subpages = []
     for a_item in soup.find_all("a"):
-        re_mat = re.match('^\d\d_', a_item.get("href"))
-        if re_mat:
-            list_of_subpages.append(a_item.get("href"))
+        if fg:
+            try:
+                if '_fg' in a_item.get("href") or 'primer' in a_item.get("href"):
+                    list_of_subpages.append(a_item.get("href"))
+            except:
+                continue
+        else:    
+            re_mat = re.match('^\d\d_', a_item.get("href"))
+            if re_mat:
+                list_of_subpages.append(a_item.get("href"))
     return set(list_of_subpages)
 
 
@@ -208,11 +220,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
                     prog='Python Scrape Modules',
                     description='Scrapes the Python and Powershell modules and creates Jupyter notebooks for each!')
+    parser.add_argument('-p', "--python", action="store_true")
     parser.add_argument('-P', "--Powershell", action="store_true")
+    parser.add_argument('-o', "--os", action="store_true")
     args = parser.parse_args()
     print(args.Powershell)
 
-    if not args.Powershell:
+    #If other args aren't used, make sure python is on by default
+    if not (args.Powershell or args.os):
+        args.python = True
+
+    #Pull and create notebooks for python modules
+    if args.python:
         dict_of_links = {}
         for url in urlList:
             dict_of_links["/".join(url.split("/")[:-1])] = []
@@ -275,7 +294,9 @@ if __name__ == "__main__":
                 json_str = json_str.replace("&gt;", ">")
                 json_str = json_str.replace("&lt;", "<")
                 f.write(json_str)
-    else:
+
+    #Pull and create notebooks for powershell modules
+    if args.Powershell:
 
         NEW_NB_METADATA["metadata"]["kernelspec"]["display_name"] = ".NET (PowerShell)"
         NEW_NB_METADATA["metadata"]["kernelspec"]["language"] = "PowerShell"
@@ -318,3 +339,46 @@ if __name__ == "__main__":
             json_str = json_str.replace("&gt;", ">")
             json_str = json_str.replace("&lt;", "<")
             f.write(json_str)
+
+    #Goal is to just pull the web pages here so that all pages are searchable for students
+    if args.os:
+        os_dir = "OS"
+        try:
+            os.mkdir(os_dir)
+        except:
+            pass
+
+        response = requests.get(osUrl[0])
+        soup = BeautifulSoup(response.content, "html.parser")
+        sublinks = get_sublinks(soup, fg=True)
+        print(sublinks)
+
+        for link in sublinks:
+
+            if link.startswith("http"):
+                link = "/".join(link.split("/")[-2:])
+                print(link)
+
+            mod_dir = os_dir + "/" + link.split("/")[-2]
+            print(mod_dir)
+            try:
+                os.mkdir(mod_dir)
+            except:
+                pass
+
+            partial_path = "/".join(osUrl[0].split("/")[0:-1])
+            print(partial_path + "/" + link)
+            response = requests.get(partial_path + "/" + link)
+
+            soup = BeautifulSoup(response.content, "html.parser")
+            article = soup.find_all("article")
+            converter = html2text.HTML2Text()
+            converter.ignore_links = False
+            markdown_content = converter.handle(str(soup))
+
+            try:
+                f = open("./OS" + "/" + link.rsplit('.', 1)[0] + ".md", "x")
+            except:
+                f = open("./OS" + "/" + link.rsplit('.', 1)[0] + ".md", "w")
+            
+            f.write(markdown_content)

@@ -6,8 +6,9 @@ In a bash terminal run:<br>
 <code>git clone https://github.com/JadeHendry/python_scrape.git
 cd python_scrape
 chmod +x install_and_scrape.sh scrape_python_modules.py
-./install_and_scrape.sh
-</code><br>
+pip install lxml beautifulsoup4 jupyterlab markdownify html2text
+./scrape_python_modules.py
+jupyter lab</code><br>
 If jupyter lab does not open, run `python3 -m jupyterlab`<br>
 * At this point a Jupyter Labs window should pop up. You can go into the modules individually. To run a codeblock, use CTRL+Enter.<br>
 * Each Notebook will run in it's own space. Make sure to shut down the kernels once you are complete and ready to move on. <br>
